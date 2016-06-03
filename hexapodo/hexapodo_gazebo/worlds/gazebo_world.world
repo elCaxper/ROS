@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<sdf version="1.4">
+<world name="myworld">
+	<include>
+		<uri>model://sun</uri>
+	</include>
+
+	<model name="ground_plane">
+    <static>true</static>
+    <link name="link">
+      <collision name="collision">
+<surface>
+        <friction>
+          <torsional>
+            <coefficient>5.0</coefficient>
+            <surface_radius>3.0</surface_radius>
+            <use_patch_radius>false</use_patch_radius>
+          </torsional>
+        </friction>
+
+      </surface>
+        <geometry>
+          <plane>
+            <normal>0 0 1</normal>
+            <size>100 100</size>
+          </plane>
+        </geometry>
+        <surface>
+          <friction>
+            <ode>
+              <mu>100000</mu>
+              <mu2>50000</mu2>
+            </ode>
+          </friction>
+        </surface>
+      </collision>
+      <visual name="visual">
+        <cast_shadows>false</cast_shadows>
+        <geometry>
+          <plane>
+            <normal>0 0 1</normal>
+            <size>100 100</size>
+          </plane>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Grey</name>
+          </script>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+
+</world>
+</sdf>
+
+

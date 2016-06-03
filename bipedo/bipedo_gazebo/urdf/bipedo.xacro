@@ -1,0 +1,519 @@
+﻿<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro" name="piernas">
+
+<property name="pi" value="3.1415926535897931" />
+
+<property name="porcentaje" value="1" />
+<property name="porcentaje1x" value="1" />
+<property name="porcentaje1y" value="1" />
+
+<property name="servo_caja_x" value="0.04" /> 
+<property name="servo_caja_y" value="0.04" /> 
+<property name="servo_caja_z" value="0.004" />
+
+<property name="alargador_caja_x" value="0.04" /> 
+<property name="alargador_caja_y" value="0.04" /> 
+<property name="alargador_caja_z" value="0.05" />
+
+<property name="base_x" value="0.15" /> 
+<property name="base_y" value="0.04" /> 
+<property name="base_z" value="0.004" />
+<property name="base_mass" value="0.35" /> <!-- en kg-->
+
+<property name="masa_cilindro" value="0.35" />
+<property name="radio" value="0.016" /> 
+<property name="longitud" value="0.03" />
+<property name="esfuerzoMax" value="10000000000000000" />
+<property name="velMax" value="10000000000000000" />
+
+<macro name="box_inertia" params="m x y z">
+    <inertia  ixx="${50*m*(y*y+z*z)/12}" ixy = "0" ixz = "0"
+              iyy="${50*m*(x*x+z*z)/12}" iyz = "0"
+              izz="${50*m*(x*x+z*z)/12}" /> 
+</macro>
+<macro name="cylinder_inertia" params="m r h">
+    <inertia  ixx="${50*m*(3*r*r+h*h)/12}" ixy = "0" ixz = "0"
+              iyy="$50*{m*(3*r*r+h*h)/12}" iyz = "0"
+              izz="${50*m*r*r/2}" /> 
+</macro>
+
+<link name="map"></link>
+
+<joint name="map" type="fixed">
+  <origin xyz="0 0 0" rpy="0 0 0" />
+  <parent link="map"/>
+  <child link="base_link"/>
+</joint>
+
+
+<link name="base_link">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <mass value="8" />
+      <box_inertia  m="${2*base_mass}" x="${2*porcentaje*base_x}" y="${2*base_y}" z="${2*base_z}"/>
+    </inertial> 
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry> 
+	<box size="${porcentaje*base_x} ${base_y} ${base_z}" /> 
+      </geometry>
+      <material name="">
+        <color rgba="0.5 0.5 0.5 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry> 
+	<box size="${porcentaje*base_x} ${base_y} ${base_z}" />
+      </geometry>
+    </collision>
+</link> 
+
+<gazebo reference="base_link">
+    <material>Gazebo/Grey</material>
+</gazebo>
+
+<!--<xacro:macro name="pierna" params="side side2">
+	<xacro:servo side="base"  side2="box" angulo="-${pi/2}"/>
+</xacro:macro>-->
+
+<xacro:macro name="servo" params="side side2 x y z orientacion ejex ejey ejez">
+
+<joint name="${side}_${side2}_joint" type="fixed">
+    <origin xyz="${x} ${y} ${z}" rpy="0 0 0" />
+    <parent link="${side}_link" />
+    <child link="${side2}_link" />
+    <axis xyz="0 0 0" />
+    <limit lower = "-2.5" upper = "2.5" effort="${esfuerzoMax}" velocity="${velMax}" /> 
+</joint> 
+
+<link name="${side2}_link">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <mass value="${base_mass}" />
+      <box_inertia  m="${base_mass}" x="${servo_caja_x}" y="${servo_caja_y}" z="${servo_caja_z}"/>
+    </inertial> 
+    <inertial>
+      <origin xyz="0.11 2.7756E-17 1.3293E-50" rpy="0 0 0" />
+      <mass value="${masa_cilindro}" />
+      <cylinder_inertia  m="${masa_cilindro}" r="${radio}" h="${longitud}" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry> 
+	<box size="${servo_caja_x} ${servo_caja_y} ${servo_caja_z}" /> 
+      </geometry>
+      <material name=""> <color rgba="0.79216 0 0.93333 1" /> </material>
+    </visual>
+    <visual>
+      <origin xyz="0 0 ${-radio+servo_caja_z/2}" rpy="${pi/2} 0 ${orientacion}" />
+      <geometry> <cylinder radius="${radio}" length="${longitud}" /> </geometry>
+      <material name=""> <color rgba="1 0 0 1" /> </material>
+    </visual>
+    <collision> <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry> 
+	<box size="${servo_caja_x} ${servo_caja_y} ${servo_caja_z}" /> 
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0 0 ${-radio+servo_caja_z/2}" rpy="${pi/2} 0 ${orientacion}" />
+      <geometry> <cylinder radius="${radio}" length="${longitud}" /> </geometry>
+    </collision>
+ </link> 
+
+<gazebo reference="${side2}_link">
+    <material>Gazebo/Red</material>
+</gazebo>
+
+<joint name="cilinder_blue_${side2}_joint" type="revolute">
+    <origin xyz="0 0 ${-radio+servo_caja_z/2}" rpy="0 0 0" />
+    <parent link="${side2}_link" />
+    <child link="blue_${side2}_link" />
+    <axis xyz="${ejex} ${ejey} ${ejez}" />
+    <limit lower = "-2.5" upper = "2.5" effort="${esfuerzoMax}" velocity="${velMax}" /> 
+</joint> 
+
+<link name="blue_${side2}_link">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <mass value="${base_mass}" />
+      <box_inertia  m="${base_mass}" x="${servo_caja_x}" y="${servo_caja_y}" z="${servo_caja_z}"/>
+    </inertial> 
+    <visual>
+      <origin xyz="0 0 ${-radio+servo_caja_z/2}" rpy="0 0 0" />
+      <geometry> <box size="${servo_caja_x} ${servo_caja_y} ${servo_caja_z}" /> </geometry>
+      <material
+        name="">
+        <color rgba="0 0 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 ${-radio+servo_caja_z/2}" rpy="0 0 0" />
+      <geometry> <box size="${servo_caja_x} ${servo_caja_y} ${servo_caja_z}" /> </geometry>
+    </collision>
+</link>
+
+<transmission name="${side2}_Transmission">
+			<type>transmission_interface/SimpleTransmission</type>
+			<joint name="cilinder_blue_${side2}_joint">
+				<hardwareInterface>EffortJointInterface</hardwareInterface>
+			</joint>
+			<actuator name="cilinder_blue_${side2}_joint_Motor">
+				<hardwareInterface>EffortJointInterface</hardwareInterface>
+				<mechanicalReduction>1</mechanicalReduction>
+			</actuator>
+		</transmission>
+
+
+
+</xacro:macro>
+
+
+<xacro:macro name="servoz" params="side side2 x y z orientacion ejex ejey ejez">
+
+<joint name="${side}_${side2}_joint" type="fixed">
+    <origin xyz="${x} ${y} ${z}" rpy="0 0 0" />
+    <parent link="${side}_link" />
+    <child link="${side2}_link" />
+    <axis xyz="0 0 0" />
+    <limit lower = "-2.5" upper = "2.5" effort="${esfuerzoMax}" velocity="${velMax}" /> 
+</joint> 
+
+<link name="${side2}_link">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <mass value="${5*base_mass}" />
+      <box_inertia  m="${base_mass}" x="${servo_caja_x}" y="${servo_caja_y}" z="${servo_caja_z}"/>
+    </inertial> 
+    <inertial>
+      <origin xyz="0.11 2.7756E-17 1.3293E-50" rpy="0 0 0" />
+      <mass value="${masa_cilindro}" />
+      <cylinder_inertia  m="${masa_cilindro}" r="${radio}" h="${longitud}" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry> 
+	<box size="${servo_caja_x} ${servo_caja_y} ${servo_caja_z}" /> 
+      </geometry>
+      <material name=""> <color rgba="0.79216 0 0.93333 1" /> </material>
+    </visual>
+    <visual>
+      <origin xyz="0 0 ${-longitud/2+servo_caja_z/2}" rpy="0 0 ${orientacion}" />
+      <geometry> <cylinder radius="${radio}" length="${longitud}" /> </geometry>
+      <material name=""> <color rgba="1 0 0 1" /> </material>
+    </visual>
+    <collision> <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry> 
+	<box size="${0.2*servo_caja_x} ${0.2*servo_caja_y} ${0.2*servo_caja_z}" /> 
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0 0 ${-longitud/2+servo_caja_z/2}" rpy="0 0 ${orientacion}" />
+      <geometry> <cylinder radius="${0.2*radio}" length="${0.2*longitud}" /> </geometry>
+    </collision>
+ </link> 
+
+<joint name="cilinder_blue_${side2}_joint" type="revolute">
+    <origin xyz="0 0 ${-longitud/2-servo_caja_z/2}" rpy="0 0 0" />
+    <parent link="${side2}_link" />
+    <child link="blue_${side2}_link" />
+    <axis xyz="${ejex} ${ejey} ${ejez}" />
+    <limit lower = "-2.5" upper = "2.5" effort="${esfuerzoMax}" velocity="${velMax}" /> 
+</joint> 
+
+<link name="blue_${side2}_link">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <mass value="${5*base_mass}" />
+      <box_inertia  m="${base_mass}" x="${servo_caja_x}" y="${servo_caja_y}" z="${servo_caja_z}"/>
+    </inertial> 
+    <visual>
+      <origin xyz="0 0 ${-longitud/2+servo_caja_z/2}" rpy="0 0 0" />
+      <geometry> <box size="${servo_caja_x} ${servo_caja_y} ${servo_caja_z}" /> </geometry>
+      <material name="">  <color rgba="0 0 1 1" /> </material>
+    </visual>
+    <collision>
+       <origin xyz="0 0 ${-longitud/2+servo_caja_z/2}" rpy="0 0 0" />
+      <geometry> <box size="${servo_caja_x} ${servo_caja_y} ${servo_caja_z}" /> </geometry>
+    </collision>
+</link>
+
+<transmission name="${side2}_Transmission">
+			<type>transmission_interface/SimpleTransmission</type>
+			<joint name="cilinder_blue_${side2}_joint">
+				<hardwareInterface>EffortJointInterface</hardwareInterface>
+			</joint>
+			<actuator name="cilinder_blue_${side2}_joint_Motor">
+				<hardwareInterface>EffortJointInterface</hardwareInterface>
+				<mechanicalReduction>1</mechanicalReduction>
+			</actuator>
+		</transmission>
+</xacro:macro>
+
+<xacro:macro name="servo2ejes" params="side side2 x y z orientacion ejex ejey ejez">
+
+<joint name="${side}_${side2}_joint" type="fixed">
+    <origin xyz="${x} ${y} ${z}" rpy="0 0 0" />
+    <parent link="${side}_link" />
+    <child link="${side2}_link" />
+    <axis xyz="0 0 0" />
+    <limit lower = "-2.5" upper = "2.5" effort="${esfuerzoMax}" velocity="${velMax}" /> 
+</joint> 
+
+<link name="${side2}_link">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <mass value="${base_mass}" />
+      <box_inertia  m="${base_mass}" x="${servo_caja_x}" y="${servo_caja_y}" z="${servo_caja_z}"/>
+    </inertial> 
+
+    <inertial>
+      <origin xyz="0.11 2.7756E-17 1.3293E-50" rpy="0 0 0" />
+      <mass value="${masa_cilindro}" />
+      <cylinder_inertia  m="${masa_cilindro}" r="${radio}" h="${longitud}" />
+    </inertial>
+
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry> 
+	<box size="${servo_caja_x} ${servo_caja_y} ${servo_caja_z}" /> 
+      </geometry>
+      <material name=""> <color rgba="0.79216 0 0.93333 1" /> </material>
+    </visual>
+
+    
+
+    <visual>
+      <origin xyz="0 0 ${-radio+servo_caja_z/2}" rpy="${pi/2} 0 ${orientacion+pi/2}" />
+      <geometry> <cylinder radius="${radio}" length="${longitud}" /> </geometry>
+      <material name=""> <color rgba="1 0 0 1" /> </material>
+    </visual>
+
+    <collision> <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry> 
+	<box size="${servo_caja_x} ${servo_caja_y} ${servo_caja_z}" /> 
+      </geometry>
+    </collision>
+
+    <collision>
+      <origin xyz="0 0 ${-radio+servo_caja_z/2}" rpy="${pi/2} 0 ${orientacion}" />
+      <geometry> <cylinder radius="${0.3*radio}" length="${0.3*longitud}" /> </geometry>
+    </collision>
+    
+ </link> 
+
+<gazebo reference="${side2}_link">
+    <material>Gazebo/Red</material>
+</gazebo>
+
+<joint name="cilinder_blue1_${side2}_joint" type="revolute">
+    <origin xyz="0 0 ${-radio+servo_caja_z/2}" rpy="0 0 0" />
+    <parent link="${side2}_link" />
+    <child link="auxiliar${side2}" />
+    <axis xyz="0 1 ${ejez}" />
+    <limit lower = "-2.5" upper = "2.5" effort="${esfuerzoMax}" velocity="${velMax}" /> 
+</joint> 
+
+<link name="auxiliar${side2}">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <mass value="${base_mass}" />
+      <box_inertia  m="0" x="0" y="0" z="0"/>
+    </inertial> 
+    <visual>
+      <origin xyz="0 0 0" rpy="${pi/2} 0 ${orientacion}" />
+      <geometry> <cylinder radius="${radio}" length="${longitud}" /> </geometry>
+      <material name=""> <color rgba="1 0 0 1" /> </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="${pi/2} 0 ${orientacion+pi/2}" />
+      <geometry> <cylinder radius="${0.3* radio}" length="${0.3*longitud}" /> </geometry>
+    </collision>
+</link>
+
+<joint name="cilinder_blue_${side2}_joint" type="revolute">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <parent link="auxiliar${side2}" />
+    <child link="blue_${side2}_link" />
+    <axis xyz="1 0 ${ejez}" />
+    <limit lower = "-2.5" upper = "2.5" effort="${esfuerzoMax}" velocity="${velMax}" /> 
+</joint> 
+
+<link name="blue_${side2}_link">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <mass value="${base_mass}" />
+      <box_inertia  m="${base_mass}" x="${servo_caja_x}" y="${servo_caja_y}" z="${servo_caja_z}"/>
+    </inertial> 
+    <visual>
+      <origin xyz="0 0 ${-radio+servo_caja_z/2}" rpy="0 0 0" />
+      <geometry> <box size="${servo_caja_x} ${servo_caja_y} ${servo_caja_z}" /> </geometry>
+      <material
+        name="">
+        <color rgba="0 0 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 ${-radio+servo_caja_z/2}" rpy="0 0 0" />
+      <geometry> <box size="${servo_caja_x} ${servo_caja_y} ${servo_caja_z}" /> </geometry>
+    </collision>
+</link>
+
+<gazebo reference="$blue_{side2}_link">
+    <material>Gazebo/Red</material>
+</gazebo>
+
+<transmission name="${side2}_Transmission">
+			<type>transmission_interface/SimpleTransmission</type>
+			<joint name="cilinder_blue_${side2}_joint">
+				<hardwareInterface>EffortJointInterface</hardwareInterface>
+			</joint>
+			<actuator name="cilinder_blue_${side2}_joint_Motor">
+				<hardwareInterface>EffortJointInterface</hardwareInterface>
+				<mechanicalReduction>5000</mechanicalReduction>
+			</actuator>
+		</transmission>
+
+<transmission name="${side2}_Transmission">
+			<type>transmission_interface/SimpleTransmission</type>
+			<joint name="cilinder_blue1_${side2}_joint">
+				<hardwareInterface>EffortJointInterface</hardwareInterface>
+			</joint>
+			<actuator name="cilinder_blue1_${side2}_joint_Motor">
+				<hardwareInterface>EffortJointInterface</hardwareInterface>
+				<mechanicalReduction>5000</mechanicalReduction>
+			</actuator>
+		</transmission>
+</xacro:macro>
+
+<xacro:macro name="alargador" params="side side2 x y z orientacion ejex ejey ejez">
+
+<joint name="${side}_${side2}_joint" type="fixed">
+    <origin xyz="${x} ${y} ${z}" rpy="0 0 0" />
+    <parent link="${side}_link" />
+    <child link="${side2}_link" />
+    <axis xyz="0 0 0" />
+    <limit lower = "-2.5" upper = "2.5" effort="${esfuerzoMax}" velocity="${velMax}" /> 
+</joint> 
+
+<link name="${side2}_link">
+
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <mass value="${base_mass}" />
+      <box_inertia  m="${base_mass}" x="${servo_caja_x}" y="${servo_caja_y}" z="${servo_caja_z}"/>
+    </inertial> 
+    
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry> 
+	<box size="${alargador_caja_x} ${alargador_caja_y} ${alargador_caja_z}" /> 
+      </geometry>
+      <material name=""> <color rgba="0.79216 0 0.93333 1" /> </material>
+    </visual>
+
+    <collision> <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry> 
+	<box size="${alargador_caja_x} ${alargador_caja_y} ${alargador_caja_z}" /> 
+      </geometry>
+    </collision>
+ </link> 
+
+<gazebo reference="${side2}_link">
+    <material>Gazebo/Red</material>
+</gazebo>
+
+</xacro:macro>
+
+<xacro:macro name="pie" params="side side2 x y z orientacion ejex ejey ejez">
+   <joint name="${side}_${side2}_joint" type="fixed">
+      <origin xyz="${x} ${y} ${z}" rpy="0 0 0" />
+      <parent link="${side}_link" />
+      <child link="${side2}_link" />
+      <axis xyz="0 0 0" />
+      <limit lower = "-2.5" upper = "2.5" effort="100" velocity="${velMax}" /> 
+   </joint> 
+   <link name="${side2}_link">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <mass value="${base_mass}" />
+      <box_inertia  m="${base_mass}" x="${2*servo_caja_x}" y="${2*servo_caja_y}" z="${servo_caja_z}"/>
+    </inertial> 
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry> 
+	<box size="${2.5*servo_caja_x*porcentaje1x} ${4*servo_caja_y*porcentaje1y} ${servo_caja_z}" /> 
+      </geometry>
+      <material name=""> <color rgba="0.79216 0 0.93333 1" /> </material>
+    </visual>
+    <collision> <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry> 
+	<box size="${3*servo_caja_x*porcentaje1x} ${4*servo_caja_y*porcentaje1y} ${servo_caja_z}" /> 
+      </geometry>
+    </collision>
+ </link> 
+
+<gazebo reference="${side2}_link">
+    <material>Gazebo/Orange</material>
+</gazebo>
+
+<gazebo reference="pie_der_link">
+  <mu1 value="90000.0"/>
+  <mu2 value="90000.0"/>
+ <kp  value="100000.0" />
+ <kd  value="10000.0" />
+  <!--<fdir1 value="1 0 0"/>
+     <minDepth>0.001</minDepth>-->
+    <maxContacts>20</maxContacts> 
+
+</gazebo>
+<gazebo reference="pie_izq_link">
+  <mu1 value="90000.0"/>
+  <mu2 value="90000.0"/>
+  <kp  value="100000.0" />
+  <kd  value="10000.0" />
+  <!--<fdir1 value="1 0 0"/> 
+    <minDepth>0.001</minDepth>-->
+    <maxContacts>20</maxContacts>
+
+</gazebo>
+
+</xacro:macro>
+
+<gazebo>
+        <plugin filename="libgazebo_ros_control.so" name="gazebo_ros_control">
+            <robotNamespace>/piernas</robotNamespace>
+            <robotSimType>gazebo_ros_control/DefaultRobotHWSim</robotSimType>
+        </plugin>
+    </gazebo>
+
+
+
+
+
+<!-- Build robot model -->
+    <!-- <xacro:pierna side="base_link"  side2="2"/>-->
+    <xacro:servoz side="base" side2="box1_izq" x="${porcentaje*base_x/2-servo_caja_x/2}" y="0" z="${-base_z/2-servo_caja_z/2}" orientacion="${pi/2}" ejex="0"  ejey="0" ejez="1"/>
+     <xacro:servo2ejes side="blue_box1_izq" side2="box2_izq" x="0" y="0" z="${-longitud/2-servo_caja_z/2}" orientacion="0" ejex="1" ejey="0" ejez="0"/>
+    <xacro:alargador side="blue_box2_izq" side2="box3_izq" x="0" y="0" z="${-radio-alargador_caja_z/2}" orientacion="0" ejex="0" ejey="1" ejez="0"/>
+    <xacro:servo side="box3_izq" side2="box4_izq" x="0" y="0" z="${-alargador_caja_z/2}" orientacion="${pi/2}" ejex="1" ejey="0" ejez="0"/>
+    <xacro:alargador side="blue_box4_izq" side2="box5_izq" x="0" y="0" z="${-radio-alargador_caja_z/2}" orientacion="0" ejex="0" ejey="1" ejez="0"/>
+    <xacro:servo2ejes side="box5_izq" side2="box6_izq" x="0" y="0" z="${-alargador_caja_z/2}" orientacion="0" ejex="1" ejey="0" ejez="0"/>
+    <xacro:pie side="blue_box6_izq" side2="pie_izq" x="0" y="0" z="${-radio-servo_caja_z/2}" orientacion="0" ejex="0" ejey="0" ejez= "0"/>
+
+
+    <xacro:servoz side="base" side2="box1_der" x="${-porcentaje*base_x/2+servo_caja_x/2}" y="0" z="${-base_z/2-servo_caja_z/2}" orientacion="${pi/2}" ejex="0"  ejey="0" ejez="1"/>
+    <xacro:servo2ejes side="blue_box1_der" side2="box2_der" x="0" y="0" z="${-radio-servo_caja_z/2}" orientacion="0" ejex="1" ejey="0" ejez="0"/>
+    <xacro:alargador side="blue_box2_der" side2="box3_der" x="0" y="0" z="${-longitud/2-alargador_caja_z/2}" orientacion="0" ejex="0" ejey="1" ejez="0"/>
+    <xacro:servo side="box3_der" side2="box4_der" x="0" y="0" z="${-alargador_caja_z/2}" orientacion="${pi/2}" ejex="1" ejey="0" ejez="0"/>
+    <xacro:alargador side="blue_box4_der" side2="box5_der" x="0" y="0" z="${-radio-alargador_caja_z/2}" orientacion="0" ejex="0" ejey="1" ejez="0"/>
+    <xacro:servo2ejes side="box5_der" side2="box6_der" x="0" y="0" z="${-alargador_caja_z/2}" orientacion="0" ejex="1" ejey="0" ejez="0"/>
+    <xacro:pie side="blue_box6_der" side2="pie_der" x="0" y="0" z="${-radio-servo_caja_z/2}" orientacion="0" ejex="0" ejey="0" ejez= "0"/>
+<!---->
+
+    <!--<xacro:servo side="3"  side2="4"/>
+    <xacro:servo side="4"  side2="5"/>
+    <xacro:servo side="5"  side2="6"/>-->
+
+
+</robot>   

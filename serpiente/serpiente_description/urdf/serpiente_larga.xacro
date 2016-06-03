@@ -1,0 +1,222 @@
+<?xml version="1.0"?>
+<robot
+  name="serp"
+  xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <link name="map">
+  </link>
+
+    <xacro:property name="pi" value="3.1415926535897931" />
+
+<xacro:macro name="eslabon" params="parent position x y angle axis">
+  <joint name="${parent}" type="fixed">
+    <origin xyz="${x} 0 0" rpy="0 0 0" />
+    <parent link="${parent}"/>
+    <child link="base_link${position}"/>
+  </joint>
+
+
+  <link
+    name="base_link${position}">
+    <inertial>
+      <origin
+        xyz="${x+0.03} 0 -0.0015809"
+        rpy="0 0 0" />
+      <mass
+        value="0.2" />
+      <inertia
+        ixx="0.033333"
+        ixy="7.6472E-21"
+        ixz="-1.039E-21"
+        iyy="0.017333"
+        iyz="2.322E-21"
+        izz="0.017333" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://serpiente_description/urdf/meshes_serpiente/base_link.stl" />
+	  <!-- <mesh filename="file:///home/kaiser/catkin_ws_CromaBueno/src/croma_description/meshes/base_link.stl" /> -->
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.79216 0 0.93333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://serpiente_description/urdf/meshes_serpiente/base_link.stl" />
+      </geometry>
+    </collision>
+  </link>
+
+  <link
+    name="cilinder${position}">
+    <inertial>
+      <origin
+        xyz="${x+0.07} 2.7756E-17 1.3293E-50"
+        rpy="0 0 0" />
+      <mass
+        value="0.7854" />
+      <inertia
+        ixx="0.011454"
+        ixy="2.2588E-20"
+        ixz="3.7494E-36"
+        iyy="0.0098175"
+        iyz="3.7944E-36"
+        izz="0.011454" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://serpiente_description/urdf/meshes_serpiente/cilinder.stl" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 0 0 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://serpiente_description/urdf/meshes_serpiente/cilinder.stl" />
+      </geometry>
+    </collision>
+  </link>
+
+  <joint
+    name="base_cilinder_joint${position}"
+    type="fixed">
+    <origin
+      xyz="0 0 0"
+      rpy="${angle} 0 0" />
+    <parent
+      link="base_link${position}" />
+    <child
+      link="cilinder${position}" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+
+  <link
+    name="blue_box${position}">
+    <inertial>
+      <origin
+        xyz="0.04 0 2.0668E-19"
+        rpy="0 0 0" />
+      <mass
+        value="0.2" />
+      <inertia
+        ixx="0.033333"
+        ixy="3.4121E-21"
+        ixz="-1.3214E-21"
+        iyy="0.017333"
+        iyz="2.322E-21"
+        izz="0.017333" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://serpiente_description/urdf/meshes_serpiente/blue_box.stl" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0 0 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://serpiente_description/urdf/meshes_serpiente/blue_box.stl" />
+      </geometry>
+    </collision>
+  </link>
+
+  <joint
+    name="box_cilinder_joint${position}"
+    type="revolute">
+    <origin
+      xyz="0.05 0 0"
+      rpy="0 0 0" />
+    <parent
+      link="cilinder${position}" />
+    <child
+      link="blue_box${position}" />
+    <axis
+      xyz="0 1 0" />
+    <limit
+      lower = "-2.5"
+      upper = "2.5"
+      effort="100"
+      velocity="1000" /> 
+  </joint>
+
+<gazebo reference="base_link${position}">
+  <material>Gazebo/Green</material>
+</gazebo>
+<gazebo reference="cilinder${position}">
+  <material>Gazebo/Green</material>
+</gazebo>
+<gazebo reference="blue_box${position}">
+  <material>Gazebo/Green</material>
+</gazebo>
+
+
+<transmission name="t_box_cilinder_joint${position}">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="box_cilinder_joint${position}">
+        <hardwareInterface>EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="m_box_cilinder_joint${position}">
+      <hardwareInterface>EffortJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+
+</xacro:macro>
+
+
+
+ <gazebo>
+    <plugin filename="libgazebo_ros_control.so" name="gazebo_ros_control">
+      <robotNamespace>/serp</robotNamespace>
+    </plugin>
+  </gazebo>
+
+
+
+
+
+
+<xacro:eslabon parent="map" position="1" x="0.01" y="-0.08335" angle="0" axis="1" />
+<xacro:eslabon parent="blue_box1" position="2" x="0.05" y="-0.08335" angle="${pi/2}" axis="1" />
+<xacro:eslabon parent="blue_box2" position="3" x="0.05" y="-0.08335" angle="-${pi/2}" axis="1" />
+<xacro:eslabon parent="blue_box3" position="4" x="0.05" y="-0.08335" angle="${pi/2}" axis="1" />
+<xacro:eslabon parent="blue_box4" position="5" x="0.05" y="-0.08335" angle="-${pi/2}" axis="1" />
+<xacro:eslabon parent="blue_box5" position="6" x="0.05" y="-0.08335" angle="${pi/2}" axis="1" />
+<xacro:eslabon parent="blue_box6" position="7" x="0.05" y="-0.08335" angle="-${pi/2}" axis="1" />
+<xacro:eslabon parent="blue_box7" position="8" x="0.05" y="-0.08335" angle="${pi/2}" axis="1" />
+<xacro:eslabon parent="blue_box8" position="9" x="0.05" y="-0.08335" angle="-${pi/2}" axis="1" />
+</robot>

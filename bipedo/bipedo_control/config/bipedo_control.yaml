@@ -1,0 +1,38 @@
+piernas:
+  # Publish all joint states -----------------------------------
+  joint_state_controller:
+    type: joint_state_controller/JointStateController
+    publish_rate: 100  
+
+  # Controllers ------------------------------------------------
+  piernas_controller:
+    type: effort_controllers/JointTrajectoryController
+    joints:    
+      - cilinder_blue_box1_der_joint
+      - cilinder_blue1_box2_der_joint
+      - cilinder_blue_box2_der_joint
+      - cilinder_blue_box4_der_joint
+      - cilinder_blue1_box6_der_joint
+      - cilinder_blue_box6_der_joint
+      - cilinder_blue_box1_izq_joint
+      - cilinder_blue1_box2_izq_joint
+      - cilinder_blue_box2_izq_joint
+      - cilinder_blue_box4_izq_joint
+      - cilinder_blue1_box6_izq_joint
+      - cilinder_blue_box6_izq_joint  
+    #constraints:
+      #stopped_velocity_tolerance: 0.002 # Override default
+    gains:
+      cilinder_blue_box1_der_joint:  {p: 6000.0, i: 0.01, d: 12.0}
+      cilinder_blue1_box2_der_joint:  {p: 6000.0, i: 0.01, d: 12.0}
+      cilinder_blue_box2_der_joint:  {p: 6000.0, i: 0.01, d: 12.0}
+      cilinder_blue_box4_der_joint:  {p: 6000.0, i: 0.01, d: 12.0}
+      cilinder_blue1_box6_der_joint:  {p: 6000.0, i: 0.01, d: 12.0}
+      cilinder_blue_box6_der_joint:  {p: 6000.0, i: 0.01, d: 12.0}
+      cilinder_blue_box1_izq_joint:  {p: 6000.0, i: 0.01, d: 12.0}
+      cilinder_blue1_box2_izq_joint:  {p: 6000.0, i: 0.01, d: 12.0}
+      cilinder_blue_box2_izq_joint:  {p: 6000.0, i: 0.01, d: 12.0}
+      cilinder_blue_box4_izq_joint:  {p: 6000.0, i: 0.01, d: 12.0}
+      cilinder_blue1_box6_izq_joint:  {p: 6000.0, i: 0.01, d: 12.0}
+      cilinder_blue_box6_izq_joint:  {p: 6000.0, i: 0.01, d: 12.0}  
+    state_publish_rate:  100           # Override default

@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<launch>	  
+	<include file="$(find gazebo_ros)/launch/empty_world.launch">	    
+		<arg name="world_name" value="$(find bipedo_gazebo)/worlds/gazebo_world.world"/>	    
+		<arg name="gui" value="true"/>
+		<arg name="paused" value="true"/> <!-- -->  
+	</include>	
+
+<param name="robot_description" command="$(find xacro)/xacro.py '$(find bipedo_gazebo)/urdf/bipedo.xacro'" />
+
+
+<node name="renacuajo_spanw" pkg="gazebo_ros" type="spawn_model" output="screen"
+ args="-urdf -param robot_description -model robot -z 1.2 " />
+
+<include file="$(find urdf_serp)/launch/mi_xacro_prueba_control2.launch"/><!---->
+
+</launch> 
+
+
+
+

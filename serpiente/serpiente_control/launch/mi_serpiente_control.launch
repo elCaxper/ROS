@@ -1,0 +1,17 @@
+<launch>
+
+  <rosparam file="$(find serpiente_control)/config/mi_serpiente_control.yaml" command="load"/>
+
+
+  <!-- load the controllers -->
+    <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
+    output="screen" ns="/serp" args=" joint_state_controller box_cilinder_joint1_position_controller box_cilinder_joint2_position_controller box_cilinder_joint3_position_controller box_cilinder_joint4_position_controller box_cilinder_joint5_position_controller box_cilinder_joint6_position_controller box_cilinder_joint7_position_controller box_cilinder_joint8_position_controller box_cilinder_joint9_position_controller"/>
+    
+
+  <!-- convert joint states to TF transforms for rviz, etc -->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"
+    respawn="false" output="screen">
+    <remap from="/joint_states" to="/serp/joint_states" />
+  </node>
+
+</launch>

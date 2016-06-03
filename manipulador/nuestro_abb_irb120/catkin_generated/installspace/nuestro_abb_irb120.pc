@@ -1,0 +1,8 @@
+prefix=/home/kaiser/WS_ROS/catkin_ws/install
+
+Name: nuestro_abb_irb120
+Description: Description of nuestro_abb_irb120
+Version: 0.2.0
+Cflags: 
+Libs: -L/home/kaiser/WS_ROS/catkin_ws/install/lib 
+Requires: 

@@ -1,0 +1,91 @@
+hexapodo:
+  # Publish all joint states -----------------------------------
+  joint_state_controller:
+    type: joint_state_controller/JointStateController
+    publish_rate: 100  
+
+  # Controllers ------------------------------------------------
+  pata_rr:
+    type: effort_controllers/JointTrajectoryController
+    joints:    
+      - coxa_joint_RR
+      - femur_joint_RR
+      - tibia_joint_RR
+    #constraints:
+      #stopped_velocity_tolerance: 0.002 # Override default
+    gains:
+      coxa_joint_RR: {p: 2000.0, i: 0.01, d: 10.0}
+      femur_joint_RR:  {p: 2000.0, i: 0.01, d: 10.0}
+      tibia_joint_RR:  {p: 2000.0, i: 0.01, d: 10.0}
+    state_publish_rate:  100           # Override default
+
+  pata_rm:
+    type: effort_controllers/JointTrajectoryController
+    joints:    
+      - coxa_joint_RM
+      - femur_joint_RM
+      - tibia_joint_RM
+    #constraints:
+      #stopped_velocity_tolerance: 0.002 # Override default
+    gains:
+      coxa_joint_RM:  {p: 2000.0, i: 0.01, d: 10.0}
+      femur_joint_RM:  {p: 2000.0, i: 0.01, d: 10.0}
+      tibia_joint_RM:  {p: 2000.0, i: 0.01, d: 10.0}
+    state_publish_rate:  100           # Override default
+
+  pata_rf:
+    type: effort_controllers/JointTrajectoryController
+    joints:    
+      - coxa_joint_RF
+      - femur_joint_RF
+      - tibia_joint_RF
+    #constraints:
+      #stopped_velocity_tolerance: 0.002 # Override default
+    gains:
+      coxa_joint_RF:  {p: 2000.0, i: 0.01, d: 10.0}
+      femur_joint_RF:  {p: 2000.0, i: 0.01, d: 10.0}
+      tibia_joint_RF:  {p: 2000.0, i: 0.01, d: 10.0}
+    state_publish_rate:  100           # Override default
+
+
+  pata_lr:
+    type: effort_controllers/JointTrajectoryController
+    joints:    
+      - coxa_joint_LR
+      - femur_joint_LR
+      - tibia_joint_LR
+    #constraints:
+      #stopped_velocity_tolerance: 0.002 # Override default
+    gains:
+      coxa_joint_LR:  {p: 2000.0, i: 0.01, d: 10.0}
+      femur_joint_LR:  {p: 2000.0, i: 0.01, d: 10.0}
+      tibia_joint_LR:  {p: 2000.0, i: 0.01, d: 10.0}
+    state_publish_rate:  100           # Override default
+
+  pata_lm:
+    type: effort_controllers/JointTrajectoryController
+    joints:    
+      - coxa_joint_LM
+      - femur_joint_LM
+      - tibia_joint_LM
+    #constraints:
+      #stopped_velocity_tolerance: 0.002 # Override default
+    gains:
+      coxa_joint_LM:  {p: 2000.0, i: 0.01, d: 10.0}
+      femur_joint_LM:  {p: 2000.0, i: 0.01, d: 10.0}
+      tibia_joint_LM:  {p: 2000.0, i: 0.01, d: 10.0}
+    state_publish_rate:  100           # Override default
+
+  pata_lf:
+    type: effort_controllers/JointTrajectoryController
+    joints:    
+      - coxa_joint_LF
+      - femur_joint_LF
+      - tibia_joint_LF
+    #constraints:
+      #stopped_velocity_tolerance: 0.002 # Override default
+    gains:
+      coxa_joint_LF:  {p: 2000.0, i: 0.01, d: 10.0}
+      femur_joint_LF:  {p: 2000.0, i: 0.01, d: 10.0}
+      tibia_joint_LF:  {p: 2000.0, i: 0.01, d: 10.0}
+    state_publish_rate:  100           # Override default

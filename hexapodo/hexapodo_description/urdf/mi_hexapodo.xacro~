@@ -1,0 +1,209 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro" name="hexapodo">
+
+    <xacro:include filename="$(find hexapodo_description)/urdf/parametros.xacro" />
+    <!-- Build the body frame -->
+    <link name="map" />
+
+    <joint name="base_joint" type="fixed">
+        <parent link="map" />
+        <child link="base_link" />
+        <origin xyz="0 0 0" rpy="0 0 0" />
+    </joint>        
+    <link name="base_link">
+		<inertial>
+			<origin    xyz="0 0 0" rpy="0 0 0" />
+			<mass value="${masa_base}" />
+			<box_inertia  m="${masa_base}" x="${long_cuerpo_x}" y="${long_cuerpo_y}" z="${long_cuerpo_z}"/>
+		</inertial> 
+        <visual>
+        	<origin    xyz="0 0 0" rpy="0 0 0" />
+        	<geometry>
+        		<box size="${1.2*long_cuerpo_x} ${long_cuerpo_y} ${long_cuerpo_z}"/>
+      		</geometry>
+            <material name="">
+            	<color rgba="0.7 0.7 0.7 1" />
+            </material>
+		</visual>
+	    <collision>
+     	   <origin    xyz="0 0 0" rpy="0 0 0" />
+           <geometry>
+			<box size="${long_cuerpo_x} ${long_cuerpo_y} 0.004"/>
+           </geometry>
+		</collision>
+    </link>
+
+    <!-- Leg macro -->
+    <xacro:macro name="leg" params="side position x y angle axis">
+    
+        <!-- leg position -->
+    	<joint name="leg_center_joint_${side}${position}" type="fixed">
+            <origin xyz="${x} ${y} 0" rpy="0 0 0" /> 
+            <parent link="base_link" />
+            <child link="leg_center_${side}${position}" />
+        </joint>
+
+        <link name="leg_center_${side}${position}">
+			<inertial>
+				<origin    xyz="0 0 0" rpy="0 0 0" />
+				<mass value="${masa_base}" />
+				<box_inertia  m="${masa_base}" x="${long_cuerpo_x}" y="${long_cuerpo_y}" z="${long_cuerpo_z}"/>
+			</inertial> 
+		</link>
+        
+        <!-- coxa -->
+        <joint name="coxa_joint_${side}${position}" type="revolute">
+            <origin xyz="0 0 0" rpy="0 0 ${angle}" />
+            <parent link="leg_center_${side}${position}" />
+            <child link="coxa_${side}${position}" />
+            <axis xyz="0 0 ${axis}" />
+            <limit lower="${lim_joint_inferior}" upper="${lim_joint_superior}" effort="${max_esfu}" velocity="${max_vel}" />
+        </joint>
+
+        <link name="coxa_${side}${position}">
+	   		<inertial>
+      			<origin xyz="0 0 0" rpy="0 0 0" />
+      			<mass value="${masa_coxa}" />
+      			<box_inertia  m="${masa_coxa}" x="${2*long_coxa}" y="0.022" z="0.0325"/>
+    		</inertial> 
+            <visual>
+                <origin xyz="${long_coxa/2} 0 0" rpy="0 0 0" />
+            	<geometry>
+                    <box size="${long_coxa} 0.022 0.0325" />
+                </geometry>
+                <material name="">
+                    <color rgba="0.7 0.7 0.7 1" />
+                </material>
+            </visual>
+			<collision>
+ 	           <origin xyz="${long_coxa/2} 0 0" rpy="0 0 0" />
+               <geometry>
+                    <box size="${long_coxa} 0.022 0.0325" />
+               </geometry>
+ 		    </collision>
+		</link>
+
+        <!-- femur -->
+        <joint name="femur_joint_${side}${position}" type="revolute">
+            <origin xyz="${long_coxa} 0 0" rpy="-${pi/2} +0.63 0" />
+            <parent link="coxa_${side}${position}" />
+            <child link="femur_${side}${position}" />
+            <axis xyz="0 0 ${axis}" />
+            <limit lower="${lim_joint_inferior}" upper="${lim_joint_superior}" effort="${max_esfu}" velocity="${max_vel}" />
+        </joint>
+
+        <link name="femur_${side}${position}">
+	   		<inertial>
+      			<origin xyz="0 -${long_femur/2} 0" rpy="0 0 0" />
+      			<mass value="${masa_femur}" />
+      			<box_inertia  m="${masa_femur}" x="0.022" y="${long_femur}" z="0.0325"/>
+    		</inertial> 
+            <visual>
+                <origin xyz="0 -${long_femur/2} 0" rpy="0 0 0" />
+                <geometry>
+                    <box size="0.022 ${long_femur} 0.0325" />
+                </geometry>
+                <material name="">
+                    <color rgba="0.7 0.7 0.7 1" />
+                </material>
+            </visual>
+	    	<collision>
+           		<origin xyz="0 -${long_femur/2} 0" rpy="0 0 0" />
+                <geometry>
+            	    <box size="0.022 ${long_femur} 0.0325" />
+                </geometry>
+      		</collision>
+		</link>
+
+        <!-- tibia -->
+        <joint name="tibia_joint_${side}${position}" type="revolute">
+            <origin xyz="0 -${long_femur} 0" rpy="${pi} 0 0.63" />
+            <parent link="femur_${side}${position}" />
+            <child link="tibia_${side}${position}" />
+            <axis xyz="0 0 ${axis}" />
+            <limit lower="${lim_joint_inferior}" upper="${lim_joint_superior}" effort="${max_esfu}" velocity="${max_vel}" />
+        </joint>
+
+        <link name="tibia_${side}${position}">
+	    	<inertial>
+      			<origin xyz="${long_tibia/2} 0 0" rpy="0 0 0" />
+      			<mass value="${masa_tibia}" />
+      			<box_inertia  m="${masa_tibia}" x="${long_tibia}" y="0.022" z="0.0325"/>
+    		</inertial> 
+            <visual>
+                <origin xyz="${long_tibia/2} 0 0" rpy="0 0 0" />
+                  <geometry>
+                    <box size="${long_tibia} 0.022 0.0325" />
+                  </geometry>
+                <material name="">
+                    <color rgba="0.7 0.7 0.7 1" />
+                </material>
+            </visual>
+	    	<collision>
+           		<origin xyz="${long_tibia/2} 0 0" rpy="0 0 0" />
+                <geometry>
+                	<box size="${long_tibia} 0.022 0.0325" />
+                </geometry>
+      		</collision>
+        </link>
+
+        <!-- tarsus -->
+        <joint name="tarsus_joint_${side}${position}" type="revolute">
+            <origin xyz="${long_tibia} 0 0" rpy="0 0 -${pi/2-1.16}" />
+            <parent link="tibia_${side}${position}" />
+            <child link="tarsus_${side}${position}" />
+            <axis xyz="0 0 ${axis}" />
+            <limit lower="${lim_joint_inferior}" upper="${lim_joint_superior}" effort="${max_esfu}" velocity="${max_vel}" />
+        </joint>
+		
+        <link name="tarsus_${side}${position}">
+	    	<inertial>
+      			<origin xyz="${long_tarsus/2} 0 0" rpy="0 0 0" />
+      			<mass value="${masa_tarsus}" />
+      			<box_inertia  m="${masa_tarsus}" x="${long_tarsus}" y="0.022" z="0.0325"/>
+    		</inertial> 
+            <visual>
+                <origin xyz="${long_tarsus/2} 0 0" rpy="0 0 0" />
+                  <geometry>
+                    <box size="${long_tarsus} 0.022 0.0325" />
+                  </geometry>
+                <material name="">
+                    <color rgba="0.7 0.7 0.7 1" />
+                </material>
+            </visual>
+			<visual>
+                <origin xyz="${long_tarsus} 0 0" rpy="0 0 0" />
+                  <geometry>
+                    <sphere radius="0.015"/>
+                  </geometry>
+                <material name="">
+                    <color rgba="0.7 0.7 0.7 1" />
+                </material>
+            </visual>
+	    	<collision>
+           		<origin xyz="${long_tarsus/2} 0 0" rpy="0 0 0" />
+                	<geometry>
+                	    <box size="${long_tarsus} 0.022 0.0325" />
+                	</geometry>
+      		</collision>
+			<collision>
+           		<origin xyz="${long_tarsus} 0 0" rpy="0 0 0" />
+                	<geometry>
+                	    <sphere radius="0.015"/>
+                	</geometry>
+      		</collision>
+        </link> 
+       
+    </xacro:macro>
+
+
+
+<!-- Build robot model -->
+    <xacro:leg side="R" position="R" x="0.1778" y="-0.08335" angle="-${pi/2}" axis="1" />
+    <xacro:leg side="R" position="M" x="0.0" y="-0.08335" angle="-${pi/2}" axis="1" />
+    <xacro:leg side="R" position="F" x="-0.1778" y="-0.08335" angle="-${pi/2}" axis="1" />    
+    <xacro:leg side="L" position="R" x="0.1778" y="0.08335" angle="${pi/2}" axis="-1" />
+    <xacro:leg side="L" position="M" x="0.0" y="0.08335" angle="${pi/2}" axis="-1" />
+    <xacro:leg side="L" position="F" x="-0.1778" y="0.08335" angle="${pi/2}" axis="-1" />
+  
+</robot>

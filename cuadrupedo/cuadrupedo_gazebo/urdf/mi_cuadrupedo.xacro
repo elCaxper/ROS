@@ -1,0 +1,365 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro" name="cuadrupedo">
+
+    <!-- parameters -->
+    <xacro:property name="pi" value="3.1415926535897931" />
+    <xacro:property name="long_cuerpo_x" value="0.5" />
+    <xacro:property name="long_cuerpo_y" value="0.3" />
+    <xacro:property name="long_cuerpo_z" value="0.01" />
+    <xacro:property name="long_coxa" value="0.05893" />
+    <xacro:property name="long_femur" value="0.15" />
+    <xacro:property name="long_tibia" value="0.14" />
+    <xacro:property name="long_tarsus" value="0.06" />
+   
+    <xacro:property name="masa_base" value="10" />
+    <xacro:property name="masa_tarsus" value="0.2" />
+    <xacro:property name="masa_tibia" value="0.2" />
+    <xacro:property name="masa_femur" value="0.2" />
+    <xacro:property name="masa_coxa" value="0.2" />
+
+    <macro name="box_inertia" params="m x y z">
+    <inertia  ixx="${500*m*(y*y+z*z)/12}" ixy = "0" ixz = "0"
+              iyy="${500*m*(x*x+z*z)/12}" iyz = "0"
+              izz="${500*m*(x*x+z*z)/12}" /> 
+    </macro>
+
+    <!-- Build the body frame -->
+    <link name="map" />
+
+    <joint name="base_joint" type="fixed">
+        <parent link="map" />
+        <child link="base_link" />
+        <origin xyz="0 0 0" rpy="0 0 0" />
+    </joint>        
+    <link name="base_link">
+		<inertial>
+			<origin    xyz="0 0 0" rpy="0 0 0" />
+			<mass value="${masa_base}" />
+			<box_inertia  m="${masa_base}" x="${long_cuerpo_x}" y="${long_cuerpo_y}" z="${long_cuerpo_z}"/>
+		</inertial> 
+        <visual>
+        	<origin    xyz="0 0 0" rpy="0 0 0" />
+        	<geometry>
+        		<box size="${1.2*long_cuerpo_x} ${long_cuerpo_y} ${long_cuerpo_z}"/>
+      		</geometry>
+            <material name="">
+            	<color rgba="0.7 0.7 0.7 1" />
+            </material>
+		</visual>
+	    <collision>
+     	   <origin    xyz="0 0 0" rpy="0 0 0" />
+           <geometry>
+			<box size="${long_cuerpo_x} ${long_cuerpo_y} 0.004"/>
+           </geometry>
+		</collision>
+    </link>
+
+    <!-- Joint properties -->
+    <xacro:property name="lim_joint_inferior" value="-${3.14}" />
+    <xacro:property name="lim_joint_superior" value="${3.14}" />
+    <xacro:property name="max_esfu" value="10000" />
+    <xacro:property name="max_vel" value="100" />
+
+
+
+    <!-- Leg macro -->
+    <xacro:macro name="leg" params="side position x y angle axis izq">
+    
+		
+
+        <!-- leg position -->
+    	<joint name="leg_center_joint_${side}${position}" type="fixed">
+            <origin xyz="${x} ${y} 0" rpy="0 0 0" /> 
+            <parent link="base_link" />
+            <child link="leg_center_${side}${position}" />
+        </joint>
+
+        <link name="leg_center_${side}${position}">
+			<inertial>
+				<origin    xyz="0 0 0" rpy="0 0 0" />
+				<mass value="${masa_base}" />
+				<box_inertia  m="${masa_base}" x="${long_cuerpo_x}" y="${long_cuerpo_y}" z="${long_cuerpo_z}"/>
+			</inertial> 
+		</link>
+        
+        <!-- coxa -->
+
+		<xacro:if value="${izq}">
+			<joint name="coxa_joint_${side}${position}" type="revolute">
+            <origin xyz="0 0 0" rpy="0 0 ${-1*angle}" />
+            <parent link="leg_center_${side}${position}" />
+            <child link="coxa_${side}${position}" />
+            <axis xyz="0 ${axis} 0" />
+            <limit lower="${lim_joint_inferior}" upper="${lim_joint_superior}" effort="${max_esfu}" velocity="${max_vel}" />
+        </joint>
+		</xacro:if>
+        
+		<xacro:unless value="${izq}">
+			<joint name="coxa_joint_${side}${position}" type="revolute">
+            <origin xyz="0 0 0" rpy="0 0 ${angle}" />
+            <parent link="leg_center_${side}${position}" />
+            <child link="coxa_${side}${position}" />
+            <axis xyz="0 ${axis} 0" />
+            <limit lower="${lim_joint_inferior}" upper="${lim_joint_superior}" effort="${max_esfu}" velocity="${max_vel}" />
+        </joint>
+		</xacro:unless>
+
+		<transmission name="coxa_joint_${side}${position}_Transmission">
+			<type>transmission_interface/SimpleTransmission</type>
+			<joint name="coxa_joint_${side}${position}">
+				<hardwareInterface>EffortJointInterface</hardwareInterface>
+			</joint>
+			<actuator name="coxa_joint_${side}${position}_Motor">
+				<hardwareInterface>EffortJointInterface</hardwareInterface>
+				<mechanicalReduction>1</mechanicalReduction>
+			</actuator>
+		</transmission>
+        <link name="coxa_${side}${position}">
+	   		<inertial>
+      			<origin xyz="0 0 0" rpy="0 0 0" />
+      			<mass value="${masa_coxa}" />
+      			<box_inertia  m="${masa_coxa}" x="${2*long_coxa}" y="0.022" z="0.0325"/>
+    		</inertial> 
+            <visual>
+                <origin xyz="${long_coxa/2} 0 0" rpy="0 0 0" />
+            	<geometry>
+                    <box size="${long_coxa} 0.022 0.0325" />
+                </geometry>
+                <material name="">
+                    <color rgba="0.7 0.7 0.7 1" />
+                </material>
+            </visual>
+			<collision>
+ 	           <origin xyz="${long_coxa/2} 0 0" rpy="0 0 0" />
+               <geometry>
+                    <box size="${long_coxa} 0.022 0.0325" />
+               </geometry>
+ 		    </collision>
+		</link>
+
+        <!-- femur -->
+		<xacro:if value="${izq}">
+			<joint name="femur_joint_${side}${position}" type="revolute">
+            <origin xyz="${long_coxa} 0 0" rpy="${pi/2+0.5} 0.0 0" />
+            <parent link="coxa_${side}${position}" />
+            <child link="femur_${side}${position}" />
+            <axis xyz="${axis} 0 0" />
+            <limit lower="${lim_joint_inferior}" upper="${lim_joint_superior}" effort="${max_esfu}" velocity="${max_vel}" />
+        </joint>
+		</xacro:if>
+        
+		<xacro:unless value="${izq}">
+			<joint name="femur_joint_${side}${position}" type="revolute">
+            <origin xyz="${long_coxa} 0 0" rpy="${pi/2-0.5} 0.0 0" />
+            <parent link="coxa_${side}${position}" />
+            <child link="femur_${side}${position}" />
+            <axis xyz="${axis} 0 0" />
+            <limit lower="${lim_joint_inferior}" upper="${lim_joint_superior}" effort="${max_esfu}" velocity="${max_vel}" />
+        </joint>
+		</xacro:unless>
+        <!--joint name="femur_joint_${side}${position}" type="revolute">
+            <origin xyz="${long_coxa} 0 0" rpy="${pi/2-0.5} 0.0 0" />
+            <parent link="coxa_${side}${position}" />
+            <child link="femur_${side}${position}" />
+            <axis xyz="${axis} 0 0" />
+            <limit lower="${lim_joint_inferior}" upper="${lim_joint_superior}" effort="${max_esfu}" velocity="${max_vel}" />
+        </joint-->
+		<transmission name="femur_joint_${side}${position}_Transmission">
+			<type>transmission_interface/SimpleTransmission</type>
+			<joint name="femur_joint_${side}${position}">
+				<hardwareInterface>EffortJointInterface</hardwareInterface>
+			</joint>
+			<actuator name="femur_joint_${side}${position}_Motor">
+				<hardwareInterface>EffortJointInterface</hardwareInterface>
+				<mechanicalReduction>1</mechanicalReduction>
+			</actuator>
+		</transmission>
+        <link name="femur_${side}${position}">
+	   		<inertial>
+      			<origin xyz="0 -${long_femur/2} 0" rpy="0 0 0" />
+      			<mass value="${masa_femur}" />
+      			<box_inertia  m="${masa_femur}" x="0.022" y="${long_femur}" z="0.0325"/>
+    		</inertial> 
+            <visual>
+                <origin xyz="0 -${long_femur/2} 0" rpy="0 0 0" />
+                <geometry>
+                    <box size="0.022 ${long_femur} 0.0325" />
+                </geometry>
+                <material name="">
+                    <color rgba="0.7 0.7 0.7 1" />
+                </material>
+            </visual>
+	    	<collision>
+           		<origin xyz="0 -${long_femur/2} 0" rpy="0 0 0" />
+                <geometry>
+            	    <box size="0.022 ${long_femur} 0.0325" />
+                </geometry>
+      		</collision>
+		</link>
+
+        <!-- tibia -->
+		<xacro:if value="${izq}">
+			<joint name="tibia_joint_${side}${position}" type="revolute">
+            <origin xyz="0 -${long_femur} 0" rpy="0 -0.8 -${pi/2}" />
+            <parent link="femur_${side}${position}" />
+            <child link="tibia_${side}${position}" />
+            <axis xyz="0 ${axis} 0" />
+            <limit lower="${lim_joint_inferior}" upper="${lim_joint_superior}" effort="${max_esfu}" velocity="${max_vel}" />
+        </joint>
+		</xacro:if>
+        
+		<xacro:unless value="${izq}">
+			<joint name="tibia_joint_${side}${position}" type="revolute">
+            <origin xyz="0 -${long_femur} 0" rpy="0 0.8 -${pi/2}" />
+            <parent link="femur_${side}${position}" />
+            <child link="tibia_${side}${position}" />
+            <axis xyz="0 ${axis} 0" />
+            <limit lower="${lim_joint_inferior}" upper="${lim_joint_superior}" effort="${max_esfu}" velocity="${max_vel}" />
+        </joint>
+		</xacro:unless>
+        <!--joint name="tibia_joint_${side}${position}" type="revolute">
+            <origin xyz="0 -${long_femur} 0" rpy="0 0.5 -${pi/2}" />
+            <parent link="femur_${side}${position}" />
+            <child link="tibia_${side}${position}" />
+            <axis xyz="0 ${axis} 0" />
+            <limit lower="${lim_joint_inferior}" upper="${lim_joint_superior}" effort="${max_esfu}" velocity="${max_vel}" />
+        </joint-->
+		<transmission name="tibia_joint_${side}${position}_Transmission">
+			<type>transmission_interface/SimpleTransmission</type>
+			<joint name="tibia_joint_${side}${position}">
+				<hardwareInterface>EffortJointInterface</hardwareInterface>
+			</joint>
+			<actuator name="tibia_joint_${side}${position}_Motor">
+				<hardwareInterface>EffortJointInterface</hardwareInterface>
+				<mechanicalReduction>1</mechanicalReduction>
+			</actuator>
+		</transmission>
+        <link name="tibia_${side}${position}">
+	    	<inertial>
+      			<origin xyz="${long_tibia/2} 0 0" rpy="0 0 0" />
+      			<mass value="${masa_tibia}" />
+      			<box_inertia  m="${masa_tibia}" x="${long_tibia}" y="0.022" z="0.0325"/>
+    		</inertial> 
+            <visual>
+                <origin xyz="${long_tibia/2} 0 0" rpy="0 0 0" />
+                  <geometry>
+                    <box size="${long_tibia} 0.022 0.0325" />
+                  </geometry>
+                <material name="">
+                    <color rgba="0.7 0.7 0.7 1" />
+                </material>
+            </visual>
+	    	<collision>
+           		<origin xyz="${long_tibia/2} 0 0" rpy="0 0 0" />
+                <geometry>
+                	<box size="${long_tibia} 0.022 0.0325" />
+                </geometry>
+      		</collision>
+        </link>
+
+        <!-- tarsus -->
+
+		<xacro:if value="${izq}">
+			<joint name="tarsus_joint_${side}${position}" type="revolute">
+            <origin xyz="${long_tibia} 0 0" rpy="-${pi/2} -0.7 0" />
+            <parent link="tibia_${side}${position}" />
+            <child link="tarsus_${side}${position}" />
+            <axis xyz="0 0 -${axis}" />
+            <limit lower="${lim_joint_inferior}" upper="${lim_joint_superior}" effort="${max_esfu}" velocity="${max_vel}" />
+        </joint>
+		</xacro:if>
+        
+		<xacro:unless value="${izq}">
+			<joint name="tarsus_joint_${side}${position}" type="revolute">
+            <origin xyz="${long_tibia} 0 0" rpy="-${pi/2} 0.7 0" />
+            <parent link="tibia_${side}${position}" />
+            <child link="tarsus_${side}${position}" />
+            <axis xyz="0 0 ${axis}" />
+            <limit lower="${lim_joint_inferior}" upper="${lim_joint_superior}" effort="${max_esfu}" velocity="${max_vel}" />
+        </joint>
+		</xacro:unless>
+
+
+        <!--joint name="tarsus_joint_${side}${position}" type="revolute">
+            <origin xyz="${long_tibia} 0 0" rpy="-${pi/2} 0.7 0" />
+            <parent link="tibia_${side}${position}" />
+            <child link="tarsus_${side}${position}" />
+            <axis xyz="0 0 ${axis}" />
+            <limit lower="${lim_joint_inferior}" upper="${lim_joint_superior}" effort="${max_esfu}" velocity="${max_vel}" />
+        </joint-->
+		<transmission name="tarsus_joint_${side}${position}_Transmission">
+			<type>transmission_interface/SimpleTransmission</type>
+			<joint name="tarsus_joint_${side}${position}">
+				<hardwareInterface>EffortJointInterface</hardwareInterface>
+			</joint>
+			<actuator name="tarsus_joint_${side}${position}_Motor">
+				<hardwareInterface>EffortJointInterface</hardwareInterface>
+				<mechanicalReduction>1</mechanicalReduction>
+			</actuator>
+		</transmission>
+
+        <link name="tarsus_${side}${position}">
+	    	<inertial>
+      			<origin xyz="${long_tarsus/2} 0 0" rpy="0 0 0" />
+      			<mass value="${masa_tarsus}" />
+      			<box_inertia  m="${masa_tarsus}" x="${long_tarsus}" y="0.022" z="0.0325"/>
+    		</inertial> 
+            <visual>
+                <origin xyz="${long_tarsus/2} 0 0" rpy="0 0 0" />
+                  <geometry>
+                    <box size="${long_tarsus} 0.022 0.0325" />
+                  </geometry>
+                <material name="">
+                    <color rgba="0.7 0.7 0.7 1" />
+                </material>
+            </visual>
+			<visual>
+                <origin xyz="${long_tarsus} 0 0" rpy="0 0 0" />
+                  <geometry>
+                    <sphere radius="0.015"/>
+                  </geometry>
+                <material name="">
+                    <color rgba="0.7 0.7 0.7 1" />
+                </material>
+            </visual>
+	    	<collision>
+           		<origin xyz="${long_tarsus/2} 0 0" rpy="0 0 0" />
+                	<geometry>
+                	    <box size="${long_tarsus} 0.022 0.0325" />
+                	</geometry>
+      		</collision>
+			<collision>
+           		<origin xyz="${long_tarsus} 0 0" rpy="0 0 0" />
+                	<geometry>
+                	    <sphere radius="0.015"/>
+                	</geometry>
+      		</collision>
+        </link> 
+
+		<gazebo reference="tarsus_${side}${position}">
+  			<mu1 value="10000.0"/>
+  			<mu2 value="10000.0"/>
+  			<kp  value="1000000.0" />
+  			<kd  value="10.0" />
+  			<!--<fdir1 value="1 0 0"/> 
+    		<minDepth>0.001</minDepth>-->
+    		<maxContacts>20</maxContacts>
+		</gazebo>
+       
+    </xacro:macro>
+
+	<gazebo>
+        <plugin filename="libgazebo_ros_control.so" name="gazebo_ros_control">
+            <robotNamespace>/cuadrupedo</robotNamespace>
+            <robotSimType>gazebo_ros_control/DefaultRobotHWSim</robotSimType>
+        </plugin>
+    </gazebo>
+
+
+<!-- Build robot model -->
+    <xacro:leg side="R" position="R" x="${long_cuerpo_x/2}" y="-${long_cuerpo_y/2}" angle="-${pi/2}" axis="1" izq="0" />
+    <xacro:leg side="R" position="F" x="-${long_cuerpo_x/2}" y="-${long_cuerpo_y/2}" angle="-${pi/2}" axis="1" izq="0"/>    
+    <xacro:leg side="L" position="R" x="${long_cuerpo_x/2}" y="${long_cuerpo_y/2}" angle="-${pi/2}" axis="1" izq="1"/>
+    <xacro:leg side="L" position="F" x="-${long_cuerpo_x/2}" y="${long_cuerpo_y/2}" angle="-${pi/2}" axis="1" izq="1"/>
+  
+</robot>

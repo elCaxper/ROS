@@ -1,0 +1,6 @@
+<launch>
+<!--<param name="robot_description" command="$(find xacro)/xacro.py '$(find abb_irb120_gazebo)/urdf/irb120.xacro'" />-->
+
+  <!--param name="robot_description" command="$(find xacro)/xacro.py '$(find urdf_serp)/urdf/IRB120_URDF_v2/robots/IRB120_URDF_v2_gazebo.URDF'" /-->
+<param name="robot_description" command="$(find xacro)/xacro.py '$(find urdf_serp)/urdf/irb120_peq/irb120_peq_gazebo.urdf'" />
+</launch>

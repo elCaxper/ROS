@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="show_rviz" default="true"/>
+  <!-- robot visualization in Rviz -->
+  <group if="$(arg show_rviz)"><!--
+    <node name="rviz" pkg="rviz" type="rviz" output="screen" args="-d $(find labrob_gazebo)/launch/gazebo.rviz"/> -->
+
+<node name="rviz" pkg="rviz" type="rviz" required="true" />
+ 
+    <!-- load joint controller configurations from YAML file to parameter server -->
+    <rosparam file="$(find robot_movil_control)/config/joint_position_control.yaml" command="load" />
+    <!-- load the controllers -->
+    <node name="urdf_serp" pkg="controller_manager" type="spawner" output="screen" 
+      args="joint_state_controller" />
+ 
+    <!-- publish all the frames to TF -->
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher">
+      <param name="publish_frequency" value="50"/> <!-- Hz -->
+    </node>
+  </group>
+
+</launch>

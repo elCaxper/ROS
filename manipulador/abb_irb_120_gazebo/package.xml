@@ -1,0 +1,22 @@
+<package>
+  <name>abb_irb120_gazebo</name>
+  <version>0.0.1</version>
+  <description>
+    hola
+  </description>
+  <author email="kaiser@kaiser.kaiser">kaiser</author>
+  <maintainer email="kaiser@todo.todo">kaiser</maintainer>
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <run_depend>gazebo</run_depend>
+  <run_depend>gazebo_ros</run_depend>
+  <run_depend>gazebo_ros_control</run_depend>
+  <run_depend>gazebo_ros_pkgs</run_depend>
+  <run_depend>joint_state_controller</run_depend>
+  <run_depend>position_controllers</run_depend>
+  <run_depend>joint_trajectory_controller</run_depend>
+  <run_depend>robot_state_publisher</run_depend>
+  <run_depend>ros_controllers</run_depend>
+</package>
